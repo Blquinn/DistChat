@@ -13,6 +13,7 @@
         if (connection) {
             await connection.stop();
             connection = null;
+            connectionState = "uninitialized";
         }
         
         connection = new signalr.HubConnectionBuilder()
@@ -26,7 +27,18 @@
             receivedMessages.push(`${user} -- ${message}`);
         });
         
+        connection.onclose(() => {
+            connectionState = "closed";
+        });
+        connection.onreconnecting(() => {
+            connectionState = "reconnecting";
+        });
+        connection.onreconnected(() => {
+            connectionState = "connected";
+        });
+        
         await connection.start();
+        connectionState = "connected";
     }
     
     async function sendMessage() {
@@ -38,10 +50,6 @@
     onMount(async () => {
         const res = await fetch("http://localhost:5043/cluster/list-hosts");
         hostUrls = await res.json();
-        
-        setInterval(() => {
-            connectionState = connection ? connection.state : "uninitialized";
-        }, 1000);
     });
 </script>
 
