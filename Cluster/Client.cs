@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace DistChat.Cluster;
 
+// The Client actor is created per client connection.
+// It routes messages to the signalr socket.
 public class Client : ReceiveActor
 {
     private readonly ILogger<Client> _logger;

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace DistChat.Cluster;
 
+// IActorBridge is the interface that is used to give "regular" asp.net code
+// access into the actor system.
 public interface IActorBridge
 {
     ActorSystem GetActorSystem();

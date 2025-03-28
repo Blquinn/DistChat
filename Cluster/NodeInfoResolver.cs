@@ -4,10 +4,12 @@ using Akka.DependencyInjection;
 
 namespace DistChat.Cluster;
 
+// The NodeInfoResolver actor just returns the node's http url.
+// This would also not be used in prod.
 public class NodeInfoResolver : ReceiveActor
 {
     private readonly IConfiguration _configuration;
-    public record ResolveHttpAddress();
+    public record ResolveHttpAddress;
     public record ResolveHttpAddressResponse(string Url);
     
     public NodeInfoResolver(IConfiguration configuration)

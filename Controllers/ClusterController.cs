@@ -13,7 +13,10 @@ public class ClusterController : ControllerBase
     {
         _actorBridge = actorBridge;
     }
-
+    
+    // Retrieves the http host address from every connected node in the
+    // akka cluster.
+    // This wouldn't actually be necessary in production.
     [HttpGet("list-hosts")]
     public async Task<List<string>> ListClusterHosts()
     {

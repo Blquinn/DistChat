@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace DistChat.Cluster;
 
+// AkkaService is the implementation of IActorBridge.
+// It sets up the actor system + cluster and handles requests
+// from the asp.net controllers etc.
 public class AkkaService : IHostedService, IActorBridge
 {
     private readonly ILogger<AkkaService> _logger;
