@@ -11,7 +11,6 @@ builder.Services.AddKeyedSingleton<Config>("seed", seedNodeConf);
 builder.Services.AddKeyedSingleton<Config>("non-seed", nonSeedNodeConf);
 
 // Add services to the container.
-builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 builder.Services.AddControllers();
 builder.Services.AddRouting();
@@ -42,14 +41,12 @@ else
 
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 
 app.UseRouting();
 app.MapControllers();
 
 app.UseAuthorization();
 
-app.MapRazorPages();
 app.MapHub<ChatHub>("/chat");
 
 app.Run();
