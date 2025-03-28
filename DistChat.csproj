@@ -11,6 +11,7 @@
     <PackageReference Include="Akka.Cluster" Version="1.5.40" />
     <PackageReference Include="Akka.Cluster.Tools" Version="1.5.40" />
     <PackageReference Include="Akka.DependencyInjection" Version="1.5.40" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
 </Project>

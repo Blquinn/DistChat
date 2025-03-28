@@ -24,7 +24,8 @@
       "launchBrowser": false,
       "applicationUrl": "http://localhost:5044",
       "environmentVariables": {
-        "AKKA__SEEDNODE": "false"
+        "AKKA__SEEDNODE": "false",
+        "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
     "https": {

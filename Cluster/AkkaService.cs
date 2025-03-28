@@ -1,5 +1,5 @@
-using System.Collections.Concurrent;
 using Akka.Actor;
+using Akka.Cluster;
 using Akka.Cluster.Tools.PublishSubscribe;
 using Akka.Cluster.Tools.Singleton;
 using Akka.Configuration;
@@ -18,7 +18,7 @@ public class AkkaService : IHostedService, IActorBridge
     private readonly IServiceProvider _serviceProvider;
     private ActorSystem _actorSystem;
     private IActorRef _pubSubMediator;
-    
+
     public AkkaService(IServiceProvider serviceProvider, IHostApplicationLifetime appLifetime,
         IConfiguration configuration,
         [FromKeyedServices("seed")] Config seedConfig,
@@ -35,7 +35,7 @@ public class AkkaService : IHostedService, IActorBridge
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         var isSeed = _configuration.GetValue<bool>("Akka:SeedNode");
-        
+
         var config = isSeed ? _seedConfig : _nonSeedConfig;
 
         var bootstrap = BootstrapSetup.Create().WithConfig(config)
@@ -50,14 +50,14 @@ public class AkkaService : IHostedService, IActorBridge
         // start ActorSystem
         _actorSystem = ActorSystem.Create("ClusterSystem", actorSystemSetup);
 
+        // Create NodeInfoResolver
+        _actorSystem.ActorOf(NodeInfoResolver.Props(_actorSystem), NodeInfoResolver.GetName());
+
         // Distributed
         _pubSubMediator = DistributedPubSub.Get(_actorSystem).Mediator;
-        
+
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-        _actorSystem.WhenTerminated.ContinueWith(_ =>
-        {
-            _applicationLifetime.StopApplication();
-        });
+        _actorSystem.WhenTerminated.ContinueWith(_ => { _applicationLifetime.StopApplication(); });
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
     }
 
@@ -67,7 +67,28 @@ public class AkkaService : IHostedService, IActorBridge
         // but this call guarantees that the shutdown of the cluster is graceful regardless
         await CoordinatedShutdown.Get(_actorSystem).Run(CoordinatedShutdown.ClrExitReason.Instance);
     }
-    
+
+    public ActorSystem GetActorSystem()
+    {
+        return _actorSystem;
+    }
+
+    public async Task<string> ResolveMemberHttpAddress(Member member)
+    {
+        string actorPath;
+        actorPath = Akka.Cluster.Cluster.Get(_actorSystem).SelfMember.Equals(member)
+            ? NodeInfoResolver.GetLocalPath()
+            : NodeInfoResolver.GetClusterAddress(member);
+
+        var nodeInfoResolver = await _actorSystem.ActorSelection(actorPath)
+            .ResolveOne(TimeSpan.FromSeconds(5));
+
+        var response =
+            await nodeInfoResolver.Ask<NodeInfoResolver.ResolveHttpAddressResponse>(
+                new NodeInfoResolver.ResolveHttpAddress(), TimeSpan.FromSeconds(5));
+        return response.Url;
+    }
+
     public void CreateClient(HubCallerContext callerContext)
     {
         _actorSystem.ActorOf(Client.Props(_actorSystem, callerContext), Client.FormatName(callerContext));
@@ -103,7 +124,7 @@ public class AkkaService : IHostedService, IActorBridge
         {
             return;
         }
-        
+
         client.Tell(new Client.Subscribe(topic));
     }
 
