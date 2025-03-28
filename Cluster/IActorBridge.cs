@@ -14,5 +14,5 @@ public interface IActorBridge
     void CreateClient(HubCallerContext hubContext);
     Task DisconnectClient(HubCallerContext hubContext);
     Task SubscribeClient(HubCallerContext hubContext, string topic);
-    void PublishMessage(HubCallerContext hubContext, string topic, string message);
+    void PublishSend(ClientContext clientContext, string topic, string methodName, object []args);
 }

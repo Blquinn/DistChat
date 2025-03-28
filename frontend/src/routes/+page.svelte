@@ -44,7 +44,7 @@
     async function sendMessage() {
         if (!connection) return;
         
-        await connection.send("SendMessage", username, message);
+        await connection.send("SendToRoom", "messages", username, message);
     }
     
     onMount(async () => {

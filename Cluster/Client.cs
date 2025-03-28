@@ -14,6 +14,7 @@ public class Client : ReceiveActor
     private readonly HubCallerContext _hubCallerContext;
 
     public record Subscribe(string Topic);
+    public record SignalrSend(ClientContext Context, string Method, object[] Args);
 
     public Client(ILogger<Client> logger, HubCallerContext hubCallerContext, IHubContext<ChatHub> hubContext)
     {
@@ -35,13 +36,16 @@ public class Client : ReceiveActor
             await _hubContext.Clients.Client(_hubCallerContext.ConnectionId)
                 .SendAsync("ReceiveMessage", "system", $"Successfully subscribed to \"{subAck.Subscribe.Topic}\"");
         });
-
-        ReceiveAsync<string>(async pub =>
+       
+        ReceiveAsync<SignalrSend>(async send =>
         {
-            _logger.LogInformation("Client received pub from cluster {}", pub);
+            _logger.LogInformation("Client received signalr send from cluster {}", send);
+            
+            using var tokenSource = new CancellationTokenSource();
+            tokenSource.CancelAfter(TimeSpan.FromSeconds(5));
             
             await _hubContext.Clients.Client(_hubCallerContext.ConnectionId)
-                .SendAsync("ReceiveMessage", "system", pub);
+                .SendCoreAsync(send.Method, send.Args, tokenSource.Token);
         });
     }
 

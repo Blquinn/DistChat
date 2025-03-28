@@ -131,8 +131,13 @@ public class AkkaService : IHostedService, IActorBridge
         client.Tell(new Client.Subscribe(topic));
     }
 
-    public void PublishMessage(HubCallerContext hubContext, string topic, string message)
+    public void PublishSend(ClientContext clientContext, string topic, string methodName, object[] args)
     {
-        _pubSubMediator.Tell(new Publish("messages", message));
+        _pubSubMediator.Tell(new Publish(topic, new Client.SignalrSend(clientContext, methodName, args)));
     }
+
+    // public void PublishMessage(ClientContext clientContext, string topic, string message)
+    // {
+    //     _pubSubMediator.Tell(new Publish("messages", new Client.SignalrSend(clientContext, new []{topic, message})));
+    // }
 }

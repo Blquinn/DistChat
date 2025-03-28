@@ -13,11 +13,17 @@ public class ChatHub : Hub
         _actorBridge = actorBridge;
         _logger = logger;
     }
-
-    public async Task SendMessage(string user, string message)
+    
+    public async Task SendToRoom(string roomId, string user, string message)
     {
         _logger.LogInformation($"User sent message {user}: {message}");
-        _actorBridge.PublishMessage(Context, user, message);
+        _actorBridge.PublishSend(ClientContext.Create(Context), roomId, "ReceiveMessage", new []{user, message});
+    }
+    
+    public async Task SendDirectMessage(string user, string message)
+    {
+        _logger.LogInformation($"User sent message {user}: {message}");
+        _actorBridge.PublishSend(ClientContext.Create(Context), $"dm/{user}", "ReceiveMessage", new []{user, message});
     }
 
     public override Task OnConnectedAsync()
